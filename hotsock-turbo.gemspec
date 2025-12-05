@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Turbo Streams integration for Hotsock"
   spec.description = "Provides Turbo Streams integration for Hotsock, enabling real-time updates in Rails applications using Hotsock's WebSocket infrastructure."
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.1"
+  spec.required_ruby_version = ">= 3.2"
 
   spec.metadata = {
     "homepage_uri" => "https://www.hotsock.io",
