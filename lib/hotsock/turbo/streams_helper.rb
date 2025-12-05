@@ -30,8 +30,7 @@ module Hotsock
       end
 
       def uid
-        resolver = Hotsock::Turbo.config.uid_resolver
-        resolver ? resolver.call(self) : ""
+        respond_to?(:hotsock_uid, true) ? hotsock_uid : session.id.to_s
       end
     end
   end

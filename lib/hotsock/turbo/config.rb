@@ -3,14 +3,10 @@
 module Hotsock
   module Turbo
     class Config
-      attr_accessor :uid_resolver
-      attr_accessor :umd_resolver
       attr_accessor :parent_controller
 
       def initialize
-        @uid_resolver = ->(context) { context.session.id.to_s }
-        @umd_resolver = nil
-        @parent_controller = "ActionController::API"
+        @parent_controller = "ApplicationController"
       end
     end
   end

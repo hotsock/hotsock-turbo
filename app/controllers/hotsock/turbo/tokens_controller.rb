@@ -10,18 +10,11 @@ module Hotsock
       private
 
       def connect_token
-        claims = {scope: "connect", keepAlive: true, uid: hotsock_uid}
-        claims[:umd] = hotsock_umd if hotsock_umd.present?
+        uid = respond_to?(:hotsock_uid, true) ? hotsock_uid : session.id.to_s
+        umd = respond_to?(:hotsock_umd, true) ? hotsock_umd : nil
+
+        claims = {scope: "connect", keepAlive: true, uid:, umd:}
         Hotsock.issue_token(claims)
-      end
-
-      def hotsock_uid
-        resolver = Hotsock::Turbo.config.uid_resolver
-        resolver ? resolver.call(self) : ""
-      end
-
-      def hotsock_umd
-        Hotsock::Turbo.config.umd_resolver&.call(self)
       end
     end
   end

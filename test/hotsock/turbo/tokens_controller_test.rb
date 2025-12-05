@@ -14,6 +14,29 @@ unless defined?(TestApp)
   TestApp.initialize!
 end
 
+# Test controller that provides hotsock_uid
+class TestApplicationController < ActionController::Base
+  class_attribute :test_uid, default: nil
+  class_attribute :test_umd, default: nil
+
+  private
+
+  def hotsock_uid
+    self.class.test_uid || ""
+  end
+
+  def hotsock_umd
+    self.class.test_umd
+  end
+end
+
+# Override parent_controller for tests
+Hotsock::Turbo.config.parent_controller = "TestApplicationController"
+
+# Force reload of TokensController with new parent
+Hotsock::Turbo.send(:remove_const, :TokensController) if Hotsock::Turbo.const_defined?(:TokensController)
+load File.expand_path("../../../../app/controllers/hotsock/turbo/tokens_controller.rb", __FILE__)
+
 # Mount the engine routes (only if not already mounted)
 unless TestApp.routes.routes.any? { |r|
   begin
@@ -31,8 +54,8 @@ require "action_dispatch/testing/integration"
 
 class TokensControllerTest < ActionDispatch::IntegrationTest
   def setup
-    @original_uid_resolver = Hotsock::Turbo.config.uid_resolver
-    @original_umd_resolver = Hotsock::Turbo.config.umd_resolver
+    TestApplicationController.test_uid = nil
+    TestApplicationController.test_umd = nil
 
     Hotsock.configure do |config|
       config.aws_region = "us-east-1"
@@ -44,8 +67,8 @@ class TokensControllerTest < ActionDispatch::IntegrationTest
 
   def teardown
     Hotsock.reset_config!
-    Hotsock::Turbo.config.uid_resolver = @original_uid_resolver
-    Hotsock::Turbo.config.umd_resolver = @original_umd_resolver
+    TestApplicationController.test_uid = nil
+    TestApplicationController.test_umd = nil
   end
 
   def app
@@ -64,8 +87,8 @@ class TokensControllerTest < ActionDispatch::IntegrationTest
     assert decoded.key?("uid")
   end
 
-  def test_connect_uses_custom_uid_resolver
-    Hotsock::Turbo.config.uid_resolver = ->(controller) { "custom-user-456" }
+  def test_connect_uses_hotsock_uid_method
+    TestApplicationController.test_uid = "custom-user-456"
 
     post "/hotsock/connect"
 
@@ -74,8 +97,8 @@ class TokensControllerTest < ActionDispatch::IntegrationTest
     assert_equal "custom-user-456", decoded["uid"]
   end
 
-  def test_connect_includes_umd_when_resolver_configured
-    Hotsock::Turbo.config.umd_resolver = ->(controller) { {name: "Test User", role: "admin"} }
+  def test_connect_includes_umd_when_hotsock_umd_defined
+    TestApplicationController.test_umd = {name: "Test User", role: "admin"}
 
     post "/hotsock/connect"
 
@@ -84,17 +107,21 @@ class TokensControllerTest < ActionDispatch::IntegrationTest
     assert_equal({"name" => "Test User", "role" => "admin"}, decoded["umd"])
   end
 
-  def test_connect_omits_umd_when_resolver_returns_nil
-    Hotsock::Turbo.config.umd_resolver = ->(controller) {}
+  def test_connect_includes_nil_umd_when_hotsock_umd_returns_nil
+    TestApplicationController.test_umd = nil
 
     post "/hotsock/connect"
 
     assert_response :success
     decoded = JWT.decode(JSON.parse(response.body)["token"], nil, false).first
-    refute decoded.key?("umd")
+    assert_nil decoded["umd"]
   end
 
-  def test_parent_controller_defaults_to_action_controller_api
-    assert_equal "ActionController::API", Hotsock::Turbo.config.parent_controller
+  def test_parent_controller_defaults_to_application_controller
+    # Reset to check default (need fresh config)
+    original = Hotsock::Turbo.config.parent_controller
+    Hotsock::Turbo.instance_variable_set(:@config, nil)
+    assert_equal "ApplicationController", Hotsock::Turbo.config.parent_controller
+    Hotsock::Turbo.config.parent_controller = original
   end
 end
