@@ -12,7 +12,9 @@ module Hotsock
       end
 
       initializer "hotsock.turbo.assets.precompile" do |app|
-        app.config.assets.precompile += %w[hotsock-turbo.js]
+        if app.config.respond_to?(:assets)
+          app.config.assets.precompile += %w[hotsock-turbo.js]
+        end
       end
     end
   end
