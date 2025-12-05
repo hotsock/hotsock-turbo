@@ -10,6 +10,10 @@ module Hotsock
           include Hotsock::Turbo::StreamsHelper
         end
       end
+
+      initializer "hotsock.turbo.assets.precompile" do |app|
+        app.config.assets.precompile += %w[hotsock-turbo.js]
+      end
     end
   end
 end
