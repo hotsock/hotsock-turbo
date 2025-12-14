@@ -128,6 +128,76 @@ module Hotsock
         broadcast_to(stream, html)
       end
 
+      def self.broadcast_refresh_to(*streamables, request_id: nil, **attributes)
+        broadcast_to(
+          *streamables,
+          turbo_stream_refresh_tag(request_id: request_id, **attributes),
+          {action: :refresh}
+        )
+      end
+
+      def self.turbo_stream_refresh_tag(request_id: nil, **attributes)
+        attrs = attributes.dup
+        attrs[:"request-id"] = request_id if request_id.present?
+        attrs_str = attrs.map { |k, v| %(#{k}="#{ERB::Util.html_escape(v)}") }.join(" ")
+        attrs_str = " #{attrs_str}" if attrs_str.present?
+        %(<turbo-stream action="refresh"#{attrs_str}></turbo-stream>)
+      end
+
+      def self.broadcast_refresh_later_to(*streamables, request_id: nil)
+        stream_name = serialize_broadcasting(streamables)
+        Hotsock::Turbo::BroadcastRefreshJob.perform_later(stream_name, request_id: request_id)
+      end
+
+      def self.broadcast_action_later_to(*streamables, action:, target: nil, targets: nil, attributes: {}, **rendering)
+        stream_name = serialize_broadcasting(streamables)
+        Hotsock::Turbo::ActionBroadcastJob.perform_later(
+          stream_name,
+          action: action,
+          target: target,
+          targets: targets,
+          attributes: attributes,
+          **rendering
+        )
+      end
+
+      def self.broadcast_replace_later_to(*streamables, **opts)
+        broadcast_action_later_to(*streamables, action: :replace, **opts)
+      end
+
+      def self.broadcast_update_later_to(*streamables, **opts)
+        broadcast_action_later_to(*streamables, action: :update, **opts)
+      end
+
+      def self.broadcast_append_later_to(*streamables, **opts)
+        broadcast_action_later_to(*streamables, action: :append, **opts)
+      end
+
+      def self.broadcast_prepend_later_to(*streamables, **opts)
+        broadcast_action_later_to(*streamables, action: :prepend, **opts)
+      end
+
+      def self.broadcast_before_later_to(*streamables, **opts)
+        broadcast_action_later_to(*streamables, action: :before, **opts)
+      end
+
+      def self.broadcast_after_later_to(*streamables, **opts)
+        broadcast_action_later_to(*streamables, action: :after, **opts)
+      end
+
+      def self.broadcast_render_to(*streamables, **rendering)
+        broadcast_to(
+          *streamables,
+          ApplicationController.render(formats: [:turbo_stream], **rendering),
+          {}
+        )
+      end
+
+      def self.broadcast_render_later_to(*streamables, **rendering)
+        stream_name = serialize_broadcasting(streamables)
+        Hotsock::Turbo::BroadcastJob.perform_later(stream_name, **rendering)
+      end
+
       def self.broadcast_update_to(stream, target:, partial:, locals: {}, timestamp: nil)
         broadcast_action_to(
           stream,

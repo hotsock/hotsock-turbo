@@ -16,6 +16,18 @@ module Hotsock
           app.config.assets.precompile += %w[hotsock-turbo.js]
         end
       end
+
+      initializer "hotsock.turbo.broadcastable" do
+        ActiveSupport.on_load(:active_record) do
+          include Hotsock::Turbo::Broadcastable
+
+          if Hotsock::Turbo.config.turbo_broadcastable_override
+            # Use prepend so our methods take precedence over Turbo::Broadcastable
+            # (which may be included later by turbo-rails)
+            prepend Hotsock::Turbo::Broadcastable::TurboBroadcastableOverride
+          end
+        end
+      end
     end
   end
 end

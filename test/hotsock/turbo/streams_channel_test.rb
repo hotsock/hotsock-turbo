@@ -142,4 +142,58 @@ describe Hotsock::Turbo::StreamsChannel do
       end
     end
   end
+
+  def test_broadcast_refresh_to
+    expected_html = %(<turbo-stream action="refresh"></turbo-stream>)
+
+    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
+      assert_equal @stream, stream
+      assert_equal expected_html, html
+      assert_equal({action: :refresh}, options)
+    end do
+      Hotsock::Turbo::StreamsChannel.broadcast_refresh_to(@stream)
+    end
+  end
+
+  def test_broadcast_refresh_to_with_request_id
+    expected_html = %(<turbo-stream action="refresh" request-id="abc123"></turbo-stream>)
+
+    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
+      assert_equal @stream, stream
+      assert_equal expected_html, html
+      assert_equal({action: :refresh}, options)
+    end do
+      Hotsock::Turbo::StreamsChannel.broadcast_refresh_to(@stream, request_id: "abc123")
+    end
+  end
+
+  def test_turbo_stream_refresh_tag
+    tag = Hotsock::Turbo::StreamsChannel.turbo_stream_refresh_tag
+    assert_equal %(<turbo-stream action="refresh"></turbo-stream>), tag
+  end
+
+  def test_turbo_stream_refresh_tag_with_request_id
+    tag = Hotsock::Turbo::StreamsChannel.turbo_stream_refresh_tag(request_id: "xyz789")
+    assert_equal %(<turbo-stream action="refresh" request-id="xyz789"></turbo-stream>), tag
+  end
+
+  def test_broadcast_refresh_later_to
+    job_class = Hotsock::Turbo::BroadcastRefreshJob
+    job_class.stub :perform_later, ->(stream, request_id: nil) do
+      assert_equal @stream, stream
+      assert_nil request_id
+    end do
+      Hotsock::Turbo::StreamsChannel.broadcast_refresh_later_to(@stream)
+    end
+  end
+
+  def test_broadcast_refresh_later_to_with_request_id
+    job_class = Hotsock::Turbo::BroadcastRefreshJob
+    job_class.stub :perform_later, ->(stream, request_id: nil) do
+      assert_equal @stream, stream
+      assert_equal "abc123", request_id
+    end do
+      Hotsock::Turbo::StreamsChannel.broadcast_refresh_later_to(@stream, request_id: "abc123")
+    end
+  end
 end

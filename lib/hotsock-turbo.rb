@@ -5,6 +5,7 @@ require "hotsock/turbo/version"
 require "hotsock/turbo/config"
 require "hotsock/turbo/streams_channel"
 require "hotsock/turbo/streams_helper"
+require "hotsock/turbo/broadcastable"
 require "hotsock/turbo/engine" if defined?(Rails)
 
 module Hotsock
