@@ -29,5 +29,5 @@ Gem::Specification.new do |spec|
   )
   spec.files = `git ls-files`.split("\n").reject { |f| ignored.match(f) }
 
-  spec.add_dependency "hotsock", ">= 1.0"
+  spec.add_dependency "hotsock", "~> 1.0"
 end
