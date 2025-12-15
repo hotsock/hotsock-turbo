@@ -83,7 +83,7 @@ Hotsock::Turbo.configure do |config|
   config.parent_controller = "ApplicationController"
 
   # Optional: Enable drop-in replacement for Turbo::Broadcastable (default: false)
-  config.turbo_broadcastable_override = false
+  config.override_turbo_broadcastable = false
 end
 ```
 
@@ -95,7 +95,7 @@ end
 | `wss_url`                      | `nil`                     | Your Hotsock WebSocket server URL                                      |
 | `log_level`                    | `"warn"`                  | JavaScript client log level (`"debug"`, `"info"`, `"warn"`, `"error"`) |
 | `parent_controller`            | `"ApplicationController"` | Base controller for generated routes                                   |
-| `turbo_broadcastable_override` | `false`                   | When `true`, overrides standard Turbo broadcast methods to use Hotsock |
+| `override_turbo_broadcastable` | `false`                   | When `true`, overrides standard Turbo broadcast methods to use Hotsock |
 
 ## Usage
 
@@ -249,7 +249,7 @@ If you have existing code using `Turbo::Broadcastable` methods, you can enable d
 ```ruby
 # config/initializers/hotsock_turbo.rb
 Hotsock::Turbo.configure do |config|
-  config.turbo_broadcastable_override = true
+  config.override_turbo_broadcastable = true
 end
 ```
 

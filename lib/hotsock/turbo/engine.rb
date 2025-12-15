@@ -21,7 +21,7 @@ module Hotsock
         ActiveSupport.on_load(:active_record) do
           include Hotsock::Turbo::Broadcastable
 
-          if Hotsock::Turbo.config.turbo_broadcastable_override
+          if Hotsock::Turbo.config.override_turbo_broadcastable
             # Use prepend so our methods take precedence over Turbo::Broadcastable
             # (which may be included later by turbo-rails)
             prepend Hotsock::Turbo::Broadcastable::TurboBroadcastableOverride
