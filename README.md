@@ -64,14 +64,26 @@ import "@hotsock/hotsock-js"
 import "hotsock-turbo"
 ```
 
+### Mount the Engine
+
+Add to your `config/routes.rb`:
+
+```ruby
+mount Hotsock::Turbo::Engine => "/hotsock"
+```
+
+This provides a `POST /hotsock/connect` endpoint that returns connection tokens for the WebSocket client.
+
 ## Configuration
 
 Create an initializer at `config/initializers/hotsock_turbo.rb`:
 
 ```ruby
 Hotsock::Turbo.configure do |config|
-  # Required: Path to an endpoint that returns Hotsock connection tokens
-  config.connect_token_path = "/hotsock/connect_token"
+  # Required: Path to the engine's connect endpoint (or your own custom
+  # endpoint). This path must accept a POST request and return a JSON object
+  # with a `token` field that contains a connect-scoped JWT. {"token":"ey..."}
+  config.connect_token_path = "/hotsock/connect"
 
   # Required: Your Hotsock WebSocket URL
   config.wss_url = "wss://your-hotsock-instance.example.com"
