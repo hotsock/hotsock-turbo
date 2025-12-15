@@ -196,4 +196,73 @@ describe Hotsock::Turbo::StreamsChannel do
       Hotsock::Turbo::StreamsChannel.broadcast_refresh_later_to(@stream, request_id: "abc123")
     end
   end
+
+  describe "suppress_broadcasts" do
+    before do
+      Hotsock::Turbo.reset_config!
+    end
+
+    after do
+      Hotsock::Turbo.reset_config!
+    end
+
+    def test_broadcast_to_is_suppressed_when_configured
+      Hotsock::Turbo.config.suppress_broadcasts = true
+      publish_called = false
+
+      Hotsock::Turbo::StreamsChannel.stub :enabled?, true do
+        Hotsock.stub :publish_message, ->(**args) { publish_called = true } do
+          Hotsock::Turbo::StreamsChannel.broadcast_to(@stream, "<turbo-stream>test</turbo-stream>")
+        end
+      end
+
+      refute publish_called, "Expected Hotsock.publish_message to not be called when suppress_broadcasts is true"
+    end
+
+    def test_broadcast_refresh_later_to_is_suppressed_when_configured
+      Hotsock::Turbo.config.suppress_broadcasts = true
+      job_called = false
+
+      Hotsock::Turbo::BroadcastRefreshJob.stub :perform_later, ->(*args, **kwargs) { job_called = true } do
+        Hotsock::Turbo::StreamsChannel.broadcast_refresh_later_to(@stream)
+      end
+
+      refute job_called, "Expected BroadcastRefreshJob.perform_later to not be called when suppress_broadcasts is true"
+    end
+
+    def test_broadcast_action_later_to_is_suppressed_when_configured
+      Hotsock::Turbo.config.suppress_broadcasts = true
+      job_called = false
+
+      Hotsock::Turbo::ActionBroadcastJob.stub :perform_later, ->(*args, **kwargs) { job_called = true } do
+        Hotsock::Turbo::StreamsChannel.broadcast_action_later_to(@stream, action: :append, target: @target)
+      end
+
+      refute job_called, "Expected ActionBroadcastJob.perform_later to not be called when suppress_broadcasts is true"
+    end
+
+    def test_broadcast_render_later_to_is_suppressed_when_configured
+      Hotsock::Turbo.config.suppress_broadcasts = true
+      job_called = false
+
+      Hotsock::Turbo::BroadcastJob.stub :perform_later, ->(*args, **kwargs) { job_called = true } do
+        Hotsock::Turbo::StreamsChannel.broadcast_render_later_to(@stream, partial: @partial, locals: @locals)
+      end
+
+      refute job_called, "Expected BroadcastJob.perform_later to not be called when suppress_broadcasts is true"
+    end
+
+    def test_broadcasts_work_normally_when_suppress_broadcasts_is_false
+      Hotsock::Turbo.config.suppress_broadcasts = false
+      publish_called = false
+
+      Hotsock::Turbo::StreamsChannel.stub :enabled?, true do
+        Hotsock.stub :publish_message, ->(**args) { publish_called = true } do
+          Hotsock::Turbo::StreamsChannel.broadcast_to(@stream, "<turbo-stream>test</turbo-stream>")
+        end
+      end
+
+      assert publish_called, "Expected Hotsock.publish_message to be called when suppress_broadcasts is false"
+    end
+  end
 end

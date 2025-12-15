@@ -96,6 +96,7 @@ end
 | `log_level`                    | `"warn"`                  | JavaScript client log level (`"debug"`, `"info"`, `"warn"`, `"error"`) |
 | `parent_controller`            | `"ApplicationController"` | Base controller for generated routes                                   |
 | `override_turbo_broadcastable` | `false`                   | When `true`, overrides standard Turbo broadcast methods to use Hotsock |
+| `suppress_broadcasts`          | `false`                   | When `true`, suppresses all Hotsock turbo broadcasts globally          |
 
 ## Usage
 
@@ -272,6 +273,17 @@ message.broadcast_replace_later_to(board)
 ```
 
 ### Suppressing Broadcasts
+
+#### Global Suppression (Test Environments)
+
+Disable all broadcasts globally, useful for test environments where you don't want to require a Hotsock configuration:
+
+```ruby
+# config/environments/test.rb
+Hotsock::Turbo.config.suppress_broadcasts = true
+```
+
+#### Block-based Suppression
 
 Temporarily disable broadcasts within a block:
 
