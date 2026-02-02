@@ -11,6 +11,6 @@ group :development, :test do
 end
 
 group :test do
-  gem "maxitest"
+  gem "maxitest", "< 7"
   gem "ostruct"
 end
