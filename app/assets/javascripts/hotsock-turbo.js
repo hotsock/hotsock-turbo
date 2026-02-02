@@ -32,9 +32,18 @@ function createHotsockClient() {
 const hotsockClient = window.Hotsock || createHotsockClient()
 window.Hotsock = hotsockClient
 
-// Track active subscriptions by channel
 const subscriptions = new Map() // channel -> { binding, elements: Set, unsubscribeTimer }
+const lastMessageIds = new Map() // channel -> lastMessageId (ULID)
 const UNSUBSCRIBE_DELAY_MS = 250
+
+function isReplaceOrUpdateAction(html) {
+  return /<turbo-stream[^>]+action=["'](replace|update)["']/.test(html)
+}
+
+function isNewerMessage(newId, lastId) {
+  if (!lastId) return true
+  return newId > lastId
+}
 
 class HotsockTurboStreamSourceElement extends HTMLElement {
   #channel = null
@@ -75,8 +84,17 @@ class HotsockTurboStreamSourceElement extends HTMLElement {
       const { Turbo } = window
       const binding = hotsockClient.bind(
         "turbo_stream",
-        ({ data }) => {
+        ({ id, data }) => {
           if (!data?.html) return
+
+          if (isReplaceOrUpdateAction(data.html)) {
+            const lastId = lastMessageIds.get(channel)
+            if (!isNewerMessage(id, lastId)) {
+              return
+            }
+            lastMessageIds.set(channel, id)
+          }
+
           try {
             Turbo.renderStreamMessage(data.html)
           } catch (error) {
@@ -115,6 +133,7 @@ class HotsockTurboStreamSourceElement extends HTMLElement {
         if (sub.elements.size === 0) {
           sub.binding.unbind()
           subscriptions.delete(channel)
+          lastMessageIds.delete(channel)
         }
       }, UNSUBSCRIBE_DELAY_MS)
     }
