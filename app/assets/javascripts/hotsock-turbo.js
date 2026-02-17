@@ -8,11 +8,11 @@ function createHotsockClient() {
     {
       connectTokenFn: async () => {
         const connectTokenPath = document.querySelector(
-          'meta[name="hotsock:connect-token-path"]'
-        ).content
+          'meta[name="hotsock:connect-token-path"]',
+        )?.content
         const csrfToken = document.querySelector(
-          'meta[name="csrf-token"]'
-        ).content
+          'meta[name="csrf-token"]',
+        )?.content
         const response = await fetch(connectTokenPath, {
           method: "POST",
           headers: {
@@ -25,12 +25,15 @@ function createHotsockClient() {
       lazyConnection: true,
       logLevel: document.querySelector('meta[name="hotsock:log-level"]')
         ?.content,
-    }
+    },
   )
 }
 
-const hotsockClient = window.Hotsock || createHotsockClient()
-window.Hotsock = hotsockClient
+let hotsockClient = window.Hotsock
+if (!hotsockClient && document.querySelector('meta[name="hotsock:wss-url"]')) {
+  hotsockClient = createHotsockClient()
+  window.Hotsock = hotsockClient
+}
 
 const subscriptions = new Map() // channel -> { binding, elements: Set, unsubscribeTimer }
 const lastMessageIds = new Map() // channel -> lastMessageId (ULID)
@@ -101,7 +104,7 @@ class HotsockTurboStreamSourceElement extends HTMLElement {
             console.error("Failed to render Turbo Stream message:", error)
           }
         },
-        { channel, subscribeTokenFn: () => token }
+        { channel, subscribeTokenFn: () => token },
       )
 
       sub = { binding, elements: new Set([this]), unsubscribeTimer: null }
@@ -154,7 +157,7 @@ class HotsockTurboStreamSourceElement extends HTMLElement {
 if (customElements.get("hotsock-turbo-stream-source") === undefined) {
   customElements.define(
     "hotsock-turbo-stream-source",
-    HotsockTurboStreamSourceElement
+    HotsockTurboStreamSourceElement,
   )
 }
 
