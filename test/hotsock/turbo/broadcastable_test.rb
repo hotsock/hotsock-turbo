@@ -170,6 +170,45 @@ describe Hotsock::Turbo::Broadcastable do
     end
   end
 
+  describe "hotsock_turbo_current_request_id" do
+    it "returns ::Turbo.current_request_id, not Hotsock::Turbo" do
+      # Simulate the turbo-rails gem defining a top-level ::Turbo module
+      top_level_turbo = Module.new do
+        def self.current_request_id
+          "abc-123"
+        end
+      end
+
+      # Save and temporarily replace the top-level ::Turbo constant
+      original_turbo = Object.const_defined?(:Turbo, false) ? Object.const_get(:Turbo) : nil
+      Object.send(:remove_const, :Turbo) if original_turbo
+      Object.const_set(:Turbo, top_level_turbo)
+
+      captured_request_id = nil
+      Hotsock::Turbo::StreamsChannel.stub :broadcast_refresh_later_to, ->(*streamables, **attrs) do
+        captured_request_id = attrs[:request_id]
+      end do
+        @instance.hotsock_broadcast_refresh_later_to("stream")
+      end
+
+      assert_equal "abc-123", captured_request_id
+    ensure
+      Object.send(:remove_const, :Turbo) if Object.const_defined?(:Turbo, false)
+      Object.const_set(:Turbo, original_turbo) if original_turbo
+    end
+
+    it "returns nil when ::Turbo is not defined" do
+      captured_request_id = :not_set
+      Hotsock::Turbo::StreamsChannel.stub :broadcast_refresh_later_to, ->(*streamables, **attrs) do
+        captured_request_id = attrs[:request_id]
+      end do
+        @instance.hotsock_broadcast_refresh_later_to("stream")
+      end
+
+      assert_nil captured_request_id
+    end
+  end
+
   describe "async instance methods" do
     it "responds to hotsock_broadcast_refresh_later" do
       assert_respond_to @instance, :hotsock_broadcast_refresh_later

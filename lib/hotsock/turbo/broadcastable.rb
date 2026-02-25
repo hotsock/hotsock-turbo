@@ -347,7 +347,7 @@ module Hotsock
       end
 
       def hotsock_turbo_current_request_id
-        Turbo.current_request_id if defined?(Turbo) && Turbo.respond_to?(:current_request_id)
+        ::Turbo.current_request_id if defined?(::Turbo) && ::Turbo.respond_to?(:current_request_id)
       end
 
       # Override module that aliases standard Turbo::Broadcastable method names
