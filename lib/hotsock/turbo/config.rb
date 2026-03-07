@@ -18,7 +18,7 @@ module Hotsock
 
       def log_level
         if @log_level == :default
-          defined?(Rails) && Rails.env.development? ? "debug" : "warn"
+          (defined?(Rails) && Rails.env.development?) ? "debug" : "warn"
         else
           @log_level
         end

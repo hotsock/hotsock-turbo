@@ -34,8 +34,8 @@ describe Hotsock::Turbo::StreamsChannel do
     inner_html = "Task"
 
     ActionController::Base.stub :render, inner_html do
-      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
-        assert_equal stream, @stream
+      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(streamables, html, options = {}) do
+        assert_equal [@stream], streamables
         assert_match(/append/, html)
         assert_match(/tasks-turbo-frame/, html)
         assert_match(/Task/, html)
@@ -56,8 +56,8 @@ describe Hotsock::Turbo::StreamsChannel do
     inner_html = "Task"
 
     ActionController::Base.stub :render, inner_html do
-      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
-        assert_equal stream, @stream
+      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(streamables, html, options = {}) do
+        assert_equal [@stream], streamables
         assert_match(/prepend/, html)
         assert_match(/tasks-turbo-frame/, html)
         assert_match(/Task/, html)
@@ -78,8 +78,8 @@ describe Hotsock::Turbo::StreamsChannel do
     inner_html = "Task"
 
     ActionController::Base.stub :render, inner_html do
-      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options) do
-        assert_equal stream, @stream
+      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(streamables, html, options) do
+        assert_equal [@stream], streamables
         assert_match(/replace/, html)
         assert_match(/tasks-turbo-frame/, html)
         assert_match(/Task/, html)
@@ -100,8 +100,8 @@ describe Hotsock::Turbo::StreamsChannel do
     inner_html = "Task"
 
     ActionController::Base.stub :render, inner_html do
-      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
-        assert_equal stream, @stream
+      Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(streamables, html, options = {}) do
+        assert_equal [@stream], streamables
         assert_match(/update/, html)
         assert_match(/tasks-turbo-frame/, html)
         assert_match(/Task/, html)
@@ -120,8 +120,8 @@ describe Hotsock::Turbo::StreamsChannel do
 
   def test_broadcast_remove_to
     expected_html = %(<turbo-stream action="remove" target="tasks-turbo-frame"></turbo-stream>)
-    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
-      assert_equal stream, @stream
+    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(streamables, html, options = {}) do
+      assert_equal [@stream], streamables
       assert_equal expected_html, html
       assert_equal({}, options)
     end do
@@ -146,8 +146,8 @@ describe Hotsock::Turbo::StreamsChannel do
   def test_broadcast_refresh_to
     expected_html = %(<turbo-stream action="refresh"></turbo-stream>)
 
-    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
-      assert_equal @stream, stream
+    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(streamables, html, options = {}) do
+      assert_equal [@stream], streamables
       assert_equal expected_html, html
       assert_equal({action: :refresh}, options)
     end do
@@ -158,8 +158,8 @@ describe Hotsock::Turbo::StreamsChannel do
   def test_broadcast_refresh_to_with_request_id
     expected_html = %(<turbo-stream action="refresh" request-id="abc123"></turbo-stream>)
 
-    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(stream, html, options = {}) do
-      assert_equal @stream, stream
+    Hotsock::Turbo::StreamsChannel.stub :broadcast_to, ->(streamables, html, options = {}) do
+      assert_equal [@stream], streamables
       assert_equal expected_html, html
       assert_equal({action: :refresh}, options)
     end do

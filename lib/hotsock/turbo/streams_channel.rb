@@ -61,7 +61,7 @@ module Hotsock
         }
 
         broadcast_to(
-          *streamables,
+          streamables,
           turbo_stream_action_tag(
             action,
             target: target,
@@ -91,9 +91,9 @@ module Hotsock
         Hotsock.publish_message(channel:, event:, data:)
       end
 
-      def self.broadcast_append_to(stream, target:, partial:, locals: {}, timestamp: nil)
+      def self.broadcast_append_to(*streamables, target:, partial:, locals: {}, timestamp: nil)
         broadcast_action_to(
-          stream,
+          *streamables,
           action: :append,
           target: target,
           partial: partial,
@@ -102,9 +102,9 @@ module Hotsock
         )
       end
 
-      def self.broadcast_replace_to(stream, target:, partial:, locals: {}, timestamp: nil)
+      def self.broadcast_replace_to(*streamables, target:, partial:, locals: {}, timestamp: nil)
         broadcast_action_to(
-          stream,
+          *streamables,
           action: :replace,
           target: target,
           partial: partial,
@@ -113,9 +113,9 @@ module Hotsock
         )
       end
 
-      def self.broadcast_prepend_to(stream, target:, partial:, locals: {}, timestamp: nil)
+      def self.broadcast_prepend_to(*streamables, target:, partial:, locals: {}, timestamp: nil)
         broadcast_action_to(
-          stream,
+          *streamables,
           action: :prepend,
           target: target,
           partial: partial,
@@ -124,15 +124,15 @@ module Hotsock
         )
       end
 
-      def self.broadcast_remove_to(stream, target:)
+      def self.broadcast_remove_to(*streamables, target:)
         html =
           %(<turbo-stream action="remove" target="#{ERB::Util.html_escape(target)}"></turbo-stream>)
-        broadcast_to(stream, html)
+        broadcast_to(streamables, html)
       end
 
       def self.broadcast_refresh_to(*streamables, request_id: nil, **attributes)
         broadcast_to(
-          *streamables,
+          streamables,
           turbo_stream_refresh_tag(request_id: request_id, **attributes),
           {action: :refresh}
         )
@@ -193,7 +193,7 @@ module Hotsock
 
       def self.broadcast_render_to(*streamables, **rendering)
         broadcast_to(
-          *streamables,
+          streamables,
           ApplicationController.render(formats: [:turbo_stream], **rendering),
           {}
         )
@@ -206,9 +206,9 @@ module Hotsock
         Hotsock::Turbo::BroadcastJob.perform_later(stream_name, **rendering)
       end
 
-      def self.broadcast_update_to(stream, target:, partial:, locals: {}, timestamp: nil)
+      def self.broadcast_update_to(*streamables, target:, partial:, locals: {}, timestamp: nil)
         broadcast_action_to(
-          stream,
+          *streamables,
           action: :update,
           target: target,
           partial: partial,
