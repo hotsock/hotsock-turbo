@@ -43,7 +43,7 @@ describe Hotsock::Turbo::StreamsHelper do
   it "generates attributes with hotsock_uid method" do
     DummyController.test_uid = "test-user-id"
     streamables = %w[stream1 stream2]
-    expected_stream_name = "stream1,stream2"
+    expected_stream_name = "stream1.stream2"
 
     Hotsock.stub :issue_token, "fake-token" do
       result = @controller.hotsock_turbo_stream_from(*streamables, class: "test-class")

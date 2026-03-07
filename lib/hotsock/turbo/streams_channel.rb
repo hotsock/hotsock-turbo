@@ -222,7 +222,7 @@ module Hotsock
         if streamable.is_a?(String)
           streamable
         elsif streamable.is_a?(Array)
-          streamable.map { |s| serialize_broadcasting(s) }.join(",")
+          streamable.map { |s| serialize_broadcasting(s) }.join(".")
         elsif streamable.respond_to?(:to_gid_param)
           streamable.to_gid_param
         elsif streamable.respond_to?(:to_param)
