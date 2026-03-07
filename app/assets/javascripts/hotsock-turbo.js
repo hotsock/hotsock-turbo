@@ -22,7 +22,9 @@ function createHotsockClient() {
         const data = await response.json()
         return data.token
       },
-      lazyConnection: true,
+      lazyConnection:
+        document.querySelector('meta[name="hotsock:lazy-connection"]')
+          ?.content === "true",
       logLevel: document.querySelector('meta[name="hotsock:log-level"]')
         ?.content,
     },
