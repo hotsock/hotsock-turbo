@@ -91,12 +91,14 @@ describe Hotsock::Turbo::StreamsHelper do
       @original_connect_token_path = Hotsock::Turbo.config.connect_token_path
       @original_wss_url = Hotsock::Turbo.config.wss_url
       @original_log_level = Hotsock::Turbo.config.log_level
+      @original_lazy_connection = Hotsock::Turbo.config.lazy_connection
     end
 
     after do
       Hotsock::Turbo.config.connect_token_path = @original_connect_token_path
       Hotsock::Turbo.config.wss_url = @original_wss_url
       Hotsock::Turbo.config.log_level = @original_log_level
+      Hotsock::Turbo.config.lazy_connection = @original_lazy_connection
     end
 
     it "generates meta tags with configured values" do
@@ -132,10 +134,12 @@ describe Hotsock::Turbo::StreamsHelper do
       assert_includes result, '<meta name="hotsock:wss-url" content="wss://override.com/"'
     end
 
-    it "uses default log_level of warn" do
+    it "defaults log_level based on Rails environment" do
+      expected = Rails.env.development? ? "debug" : "warn"
+
       result = @controller.hotsock_turbo_meta_tags
 
-      assert_includes result, '<meta name="hotsock:log-level" content="warn"'
+      assert_includes result, "<meta name=\"hotsock:log-level\" content=\"#{expected}\""
     end
 
     it "includes log_level meta tag when configured" do
@@ -147,11 +151,47 @@ describe Hotsock::Turbo::StreamsHelper do
     end
 
     it "allows overriding log_level with argument" do
-      Hotsock::Turbo.config.log_level = "warn"
-
       result = @controller.hotsock_turbo_meta_tags(log_level: "debug")
 
       assert_includes result, '<meta name="hotsock:log-level" content="debug"'
+    end
+
+    it "omits log_level meta tag when set to nil" do
+      Hotsock::Turbo.config.log_level = nil
+
+      result = @controller.hotsock_turbo_meta_tags
+
+      refute_includes result, "hotsock:log-level"
+    end
+
+    it "omits lazy_connection meta tag by default" do
+      result = @controller.hotsock_turbo_meta_tags
+
+      refute_includes result, "hotsock:lazy-connection"
+    end
+
+    it "includes lazy_connection meta tag when configured to true" do
+      Hotsock::Turbo.config.lazy_connection = true
+
+      result = @controller.hotsock_turbo_meta_tags
+
+      assert_includes result, '<meta name="hotsock:lazy-connection" content="true"'
+    end
+
+    it "allows overriding lazy_connection with argument" do
+      Hotsock::Turbo.config.lazy_connection = false
+
+      result = @controller.hotsock_turbo_meta_tags(lazy_connection: true)
+
+      assert_includes result, '<meta name="hotsock:lazy-connection" content="true"'
+    end
+
+    it "omits lazy_connection meta tag when overridden to false" do
+      Hotsock::Turbo.config.lazy_connection = true
+
+      result = @controller.hotsock_turbo_meta_tags(lazy_connection: false)
+
+      refute_includes result, "hotsock:lazy-connection"
     end
   end
 end

@@ -5,6 +5,11 @@ module Hotsock
     class Engine < Rails::Engine
       isolate_namespace Hotsock::Turbo
 
+      initializer "hotsock.turbo.defaults" do
+        config = Hotsock::Turbo.config
+        config.log_level ||= Rails.env.development? ? "debug" : "warn"
+      end
+
       initializer "hotsock.turbo.helpers" do
         ActiveSupport.on_load(:action_view) do
           include Hotsock::Turbo::StreamsHelper
