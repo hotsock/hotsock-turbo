@@ -9,7 +9,7 @@ module Hotsock
         @parent_controller = "ApplicationController"
         @connect_token_path = nil
         @wss_url = nil
-        @log_level = nil
+        @log_level = :default
         @lazy_connection = false
         @override_turbo_broadcastable = false
         @suppress_broadcasts = false

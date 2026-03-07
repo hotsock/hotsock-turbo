@@ -156,7 +156,7 @@ describe Hotsock::Turbo::StreamsHelper do
       assert_includes result, '<meta name="hotsock:log-level" content="debug"'
     end
 
-    it "omits log_level meta tag when set to nil" do
+    it "omits log_level meta tag when explicitly set to nil" do
       Hotsock::Turbo.config.log_level = nil
 
       result = @controller.hotsock_turbo_meta_tags
