@@ -40,7 +40,11 @@ function ensureHotsockClient() {
     ?.getAttribute("content")
   if (!wssUrl) return
 
-  if (hotsockClient && hotsockClientOwned && hotsockClient.webSocketUrl !== wssUrl) {
+  if (
+    hotsockClient &&
+    hotsockClientOwned &&
+    hotsockClient.webSocketUrl !== wssUrl
+  ) {
     hotsockClient.disconnect()
     hotsockClient = null
     window.Hotsock = null
