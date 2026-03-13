@@ -187,17 +187,12 @@ if (customElements.get("hotsock-turbo-stream-source") === undefined) {
 
 // Before Turbo renders a new page (morph or replace), disconnect the websocket
 // if hotsock-turbo owns the connection and the new page no longer has the
-// hotsock:wss-url meta tag. This ensures the connection is closed before
-// elements are unmounted during page morph.
-document.addEventListener("turbo:before-render", (event) => {
+// hotsock:wss-url meta tag. Turbo merges the new <head> before this event
+// fires, so we can check document.head directly.
+document.addEventListener("turbo:before-render", () => {
   if (!hotsockClientOwned || !hotsockClient) return
 
-  const newHead =
-    event.detail.newBody?.ownerDocument?.head ||
-    event.detail.newBody?.parentElement?.querySelector("head")
-  if (!newHead) return
-
-  if (!newHead.querySelector('meta[name="hotsock:wss-url"]')) {
+  if (!document.querySelector('meta[name="hotsock:wss-url"]')) {
     hotsockClient.disconnect()
   }
 })
