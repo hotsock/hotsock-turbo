@@ -32,10 +32,32 @@ function createHotsockClient() {
 }
 
 let hotsockClient = window.Hotsock
-if (!hotsockClient && document.querySelector('meta[name="hotsock:wss-url"]')) {
-  hotsockClient = createHotsockClient()
-  window.Hotsock = hotsockClient
+let hotsockClientOwned = false
+
+function ensureHotsockClient() {
+  const wssUrl = document
+    .querySelector('meta[name="hotsock:wss-url"]')
+    ?.getAttribute("content")
+  if (!wssUrl) return
+
+  if (
+    hotsockClient &&
+    hotsockClientOwned &&
+    hotsockClient.webSocketUrl !== wssUrl
+  ) {
+    hotsockClient.terminate()
+    hotsockClient = null
+    window.Hotsock = null
+  }
+
+  if (!hotsockClient) {
+    hotsockClient = createHotsockClient()
+    hotsockClientOwned = true
+    window.Hotsock = hotsockClient
+  }
 }
+
+ensureHotsockClient()
 
 const subscriptions = new Map() // channel -> { binding, elements: Set, unsubscribeTimer }
 const lastMessageIds = new Map() // channel -> lastMessageId (ULID)
@@ -162,5 +184,23 @@ if (customElements.get("hotsock-turbo-stream-source") === undefined) {
     HotsockTurboStreamSourceElement,
   )
 }
+
+// Before Turbo renders a new page (morph or replace), disconnect the websocket
+// if hotsock-turbo owns the connection and the new page no longer has the
+// hotsock:wss-url meta tag. Turbo merges the new <head> before this event
+// fires, so we can check document.head directly.
+document.addEventListener("turbo:before-render", () => {
+  if (!hotsockClientOwned || !hotsockClient) return
+
+  if (!document.querySelector('meta[name="hotsock:wss-url"]')) {
+    hotsockClient.terminate()
+  }
+})
+
+// After Turbo renders a new page, create the client if the meta tag appeared
+// (e.g. navigating from a login page to the application).
+document.addEventListener("turbo:load", () => {
+  ensureHotsockClient()
+})
 
 export { hotsockClient }
