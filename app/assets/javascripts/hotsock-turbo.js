@@ -45,7 +45,7 @@ function ensureHotsockClient() {
     hotsockClientOwned &&
     hotsockClient.webSocketUrl !== wssUrl
   ) {
-    hotsockClient.disconnect()
+    hotsockClient.terminate()
     hotsockClient = null
     window.Hotsock = null
   }
@@ -193,7 +193,7 @@ document.addEventListener("turbo:before-render", () => {
   if (!hotsockClientOwned || !hotsockClient) return
 
   if (!document.querySelector('meta[name="hotsock:wss-url"]')) {
-    hotsockClient.disconnect()
+    hotsockClient.terminate()
   }
 })
 
