@@ -52,6 +52,30 @@ end
 
 require "action_dispatch/testing/integration"
 
+class RoutingTest < ActionDispatch::IntegrationTest
+  def app
+    TestApp
+  end
+
+  def setup
+    @routes = TestApp.routes
+  end
+
+  def test_post_connect_routes_to_tokens_controller
+    assert_recognizes({controller: "hotsock/turbo/tokens", action: "connect"}, {method: :post, path: "/hotsock/connect"})
+  end
+
+  def test_engine_connect_path_helper_generates_correct_path
+    helpers = Hotsock::Turbo::Engine.routes.url_helpers
+    assert_equal "/hotsock/connect", helpers.connect_path
+  end
+
+  def test_engine_connect_url_helper_generates_correct_url
+    helpers = Hotsock::Turbo::Engine.routes.url_helpers
+    assert_equal "http://www.example.com/hotsock/connect", helpers.connect_url(host: "www.example.com")
+  end
+end
+
 class TokensControllerTest < ActionDispatch::IntegrationTest
   def setup
     TestApplicationController.test_uid = nil
