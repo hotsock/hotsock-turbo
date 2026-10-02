@@ -16,6 +16,8 @@ end
 
 # Test controller that provides hotsock_uid
 class TestApplicationController < ActionController::Base
+  protect_from_forgery with: :exception
+
   class_attribute :test_uid, default: nil
   class_attribute :test_umd, default: nil
 
@@ -139,6 +141,18 @@ class TokensControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     decoded = JWT.decode(JSON.parse(response.body)["token"], nil, false).first
     assert_nil decoded["umd"]
+  end
+
+  def test_connect_does_not_require_a_csrf_token
+    original = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+
+    post "/hotsock/connect", headers: {"X-CSRF-Token" => "stale"}
+
+    assert_response :success
+    assert JSON.parse(response.body)["token"].present?
+  ensure
+    ActionController::Base.allow_forgery_protection = original
   end
 
   def test_parent_controller_defaults_to_application_controller

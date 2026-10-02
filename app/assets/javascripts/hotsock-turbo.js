@@ -6,6 +6,8 @@ function createHotsockClient() {
       .querySelector('meta[name="hotsock:wss-url"]')
       ?.getAttribute("content"),
     {
+      // Called for the first connection and again before every reconnect, so
+      // each connection gets a fresh token.
       connectTokenFn: async () => {
         const connectTokenPath = document.querySelector(
           'meta[name="hotsock:connect-token-path"]',
@@ -15,10 +17,19 @@ function createHotsockClient() {
         )?.content
         const response = await fetch(connectTokenPath, {
           method: "POST",
+          cache: "no-store",
+          credentials: "same-origin",
           headers: {
+            Accept: "application/json",
             "x-csrf-token": csrfToken,
           },
+          // A request on a connection that died while the computer slept can
+          // hang; give up so the client retries.
+          signal: AbortSignal.timeout(10000),
         })
+        if (!response.ok) {
+          throw new Error(`connect token request failed (${response.status})`)
+        }
         const data = await response.json()
         return data.token
       },

@@ -4,48 +4,52 @@ require_relative "../../helper"
 require "ostruct"
 require "active_model"
 
+# A minimal Active Model record with the callbacks Broadcastable registers
+# stubbed out.
+class BroadcastableTestModel
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  include Hotsock::Turbo::Broadcastable
+
+  attr_accessor :id
+
+  def initialize(id: 1)
+    @id = id
+  end
+
+  def self.model_name
+    ActiveModel::Name.new(self, nil, "TestModel")
+  end
+
+  def to_partial_path
+    "test_models/test_model"
+  end
+
+  def persisted?
+    true
+  end
+
+  def to_key
+    [id]
+  end
+
+  def self.after_commit(*)
+  end
+
+  def self.after_create_commit(*)
+  end
+
+  def self.after_update_commit(*)
+  end
+
+  def self.after_destroy_commit(*)
+  end
+end
+
 describe Hotsock::Turbo::Broadcastable do
   before do
-    # Create a test class that includes the Broadcastable concern
-    @test_class = Class.new do
-      extend ActiveModel::Naming
-      include ActiveModel::Conversion
-      include Hotsock::Turbo::Broadcastable
-
-      attr_accessor :id
-
-      def initialize(id: 1)
-        @id = id
-      end
-
-      def self.model_name
-        ActiveModel::Name.new(self, nil, "TestModel")
-      end
-
-      def to_partial_path
-        "test_models/test_model"
-      end
-
-      def persisted?
-        true
-      end
-
-      def to_key
-        [id]
-      end
-
-      def self.after_commit(*)
-      end
-
-      def self.after_create_commit(*)
-      end
-
-      def self.after_update_commit(*)
-      end
-
-      def self.after_destroy_commit(*)
-      end
-    end
+    # Each test gets a fresh subclass that includes the Broadcastable concern
+    @test_class = Class.new(BroadcastableTestModel)
 
     @instance = @test_class.new
   end
@@ -396,46 +400,9 @@ end
 
 describe Hotsock::Turbo::Broadcastable::TurboBroadcastableOverride do
   before do
-    # Create a test class that includes both modules
-    @test_class = Class.new do
-      extend ActiveModel::Naming
-      include ActiveModel::Conversion
-      include Hotsock::Turbo::Broadcastable
+    # Each test gets a fresh subclass that includes both modules
+    @test_class = Class.new(BroadcastableTestModel) do
       include Hotsock::Turbo::Broadcastable::TurboBroadcastableOverride
-
-      attr_accessor :id
-
-      def initialize(id: 1)
-        @id = id
-      end
-
-      def self.model_name
-        ActiveModel::Name.new(self, nil, "TestModel")
-      end
-
-      def to_partial_path
-        "test_models/test_model"
-      end
-
-      def persisted?
-        true
-      end
-
-      def to_key
-        [id]
-      end
-
-      def self.after_commit(*)
-      end
-
-      def self.after_create_commit(*)
-      end
-
-      def self.after_update_commit(*)
-      end
-
-      def self.after_destroy_commit(*)
-      end
     end
 
     @instance = @test_class.new
